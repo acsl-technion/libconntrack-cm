@@ -10,6 +10,7 @@ project('libconntrack-cm', 'cpp', default_options :
 sources = [
     'src/cm_connection_tracker.cpp',
 	'src/main.cpp',
+	'src/parser.cpp',
 ]
 
 cc = meson.get_compiler('cpp')

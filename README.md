@@ -19,5 +19,8 @@ Pass packets to the library using
 Passing an array of pre-parsed packet pointers which point to the packet L3 
 header as well as the MAD header.
 
+If needed, one may use `ctcm_parse_packets` to parse the BTH / MAD headers
+and filter the CM packets.
+
 You can then query the data structure to find the source QP number of a given
 flow by calling `ctcm_query_ipv4`.
