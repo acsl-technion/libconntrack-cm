@@ -6,8 +6,6 @@
 #include "cm_connection_tracker.h"
 #include "parser.h"
 
-#define ctcm_public __attribute__((visibility("default")))
-
 struct ctcm_context {
     cm_connection_tracker tracker = {};
 };

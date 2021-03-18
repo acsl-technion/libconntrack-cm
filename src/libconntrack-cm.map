@@ -2,6 +2,8 @@ CTCM_1.0 {
 	global:
 		ctcm_create;
 		ctcm_destroy;
+		ctcm_fill_cnp_template;
+		ctcm_generate_cnp;
 		ctcm_parse_packets;
 		ctcm_process_packets;
 		ctcm_query_ipv4;

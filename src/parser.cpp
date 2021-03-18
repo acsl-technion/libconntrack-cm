@@ -10,9 +10,7 @@
 #include "ib_pack.h"
 #include "ib_mad.h"
 
-#define UDP_PORT_ROCE_V2 4791
-
-static const rxe_bth *extract_bth(const udphdr *udp, size_t& len)
+static rxe_bth *extract_bth(udphdr *udp, size_t& len)
 {
     if (len < sizeof(rxe_bth) + sizeof(udphdr) + 4 /* icrc */ ||
         udp->uh_dport != htons(UDP_PORT_ROCE_V2))
@@ -20,10 +18,10 @@ static const rxe_bth *extract_bth(const udphdr *udp, size_t& len)
     
     len -= sizeof(rxe_bth) + 4;
 
-    return reinterpret_cast<const rxe_bth *>(udp + 1);
+    return reinterpret_cast<rxe_bth *>(udp + 1);
 }
 
-static const rxe_deth *extract_deth(const rxe_bth *bth, size_t& len)
+static rxe_deth *extract_deth(rxe_bth *bth, size_t& len)
 {
     if (__bth_opcode(const_cast<rxe_bth *>(bth)) != IB_OPCODE_UD_SEND_ONLY ||
         len < sizeof(rxe_deth))
@@ -33,17 +31,17 @@ static const rxe_deth *extract_deth(const rxe_bth *bth, size_t& len)
     // Validate BTH & DETH
     len -= sizeof(rxe_deth);
 
-    return reinterpret_cast<const rxe_deth *>(bth + 1);
+    return reinterpret_cast<rxe_deth *>(bth + 1);
 }
 
-static const ib_mad_hdr *extract_mad(const rxe_deth *deth, size_t& len)
+static ib_mad_hdr *extract_mad(rxe_deth *deth, size_t& len)
 {
     if (len < sizeof(ib_mad_hdr))
         return nullptr;
-    return reinterpret_cast<const ib_mad_hdr *>(deth + 1);
+    return reinterpret_cast<ib_mad_hdr *>(deth + 1);
 }
 
-const ib_mad_hdr *parse_packet(ctcm_packet& packet)
+ib_mad_hdr *parse_packet(ctcm_packet& packet)
 {
     size_t len = ntohs(packet.udp->len);
     packet.bth = extract_bth(packet.udp, len);

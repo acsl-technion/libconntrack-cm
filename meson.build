@@ -9,6 +9,7 @@ project('libconntrack-cm', 'cpp', default_options :
 
 sources = [
     'src/cm_connection_tracker.cpp',
+	'src/cnp.cpp',
 	'src/main.cpp',
 	'src/parser.cpp',
 ]
@@ -23,7 +24,7 @@ add_project_arguments('-fvisibility=hidden', language: 'cpp')
 
 linker_script = 'src/libconntrack-cm.map'
 
-library('conntrack-cm',
+libconntrack_cm = library('conntrack-cm',
 	sources: sources,
 	dependencies: [dpdk, boost],
 	include_directories: ['include'],
@@ -31,3 +32,25 @@ library('conntrack-cm',
 	link_depends: linker_script)
 
 install_headers('include/libconntrack-cm.h')
+
+## unit tests
+
+gtest_proj = subproject('gtest')
+gtest_dep = gtest_proj.get_variable('gtest_dep')
+gtest_main_dep = gtest_proj.get_variable('gtest_main_dep')
+
+tests_src = [
+  'tests/test_cnp.cpp',
+]
+e = executable(
+	'gtest-all',
+  	tests_src,
+  	dependencies: [
+    	gtest_dep,
+		gtest_main_dep,
+  	],
+	link_with: libconntrack_cm,
+	include_directories: ['include'],
+)
+test('gtest tests', e)
+
