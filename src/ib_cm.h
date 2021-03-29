@@ -1,7 +1,5 @@
 #pragma once
 
-#include "linux-compat.h"
-
 /* Host endianess */
 #define CM_REQ_ATTR_ID		(0x0010)
 #define CM_MRA_ATTR_ID		(0x0011)
