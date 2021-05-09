@@ -53,6 +53,11 @@ Use the following commands to build:
     meson build
     ninja -C build
 
+On BlueField-2, set `PKG_CONFIG_PATH` to allow meson to find dpdk:
+
+    PKG_CONFIG_PATH=/opt/mellanox/dpdk/lib/aarch64-linux-gnu/pkgconfig meson build
+    ninjc -C build
+
 For system-wide installation:
 
     ninja -C build install
