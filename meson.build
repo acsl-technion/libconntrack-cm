@@ -48,6 +48,7 @@ e = executable(
   	dependencies: [
     	gtest_dep,
 		gtest_main_dep,
+		dpdk,
   	],
 	link_with: libconntrack_cm,
 	include_directories: ['include'],
