@@ -19,12 +19,17 @@ public:
     ctcm_context *ctcm;
 
     void SetUp() {
+        char * args[] = {};
+        int ret = rte_eal_init(0, args);
+        ASSERT_EQ(0, ret);
         ctcm = ctcm_create();
         ASSERT_TRUE(ctcm);
     }
 
     void TearDown() { 
         ctcm_destroy(ctcm);
+        int ret = rte_eal_cleanup();
+        ASSERT_EQ(0, ret);
     }
 };
 
@@ -63,8 +68,9 @@ void hexdump(const std::string& strbuf)
 TEST_F(CTCM, cnp_gen)
 {
     cnp cnpacket{};
-    ctcm_packet p;
-    p.l3.ipv4 = &cnpacket.ip;
+    rte_mbuf p{};
+    p.buf_addr = &cnpacket;
+    p.buf_len = sizeof(cnpacket);
     ctcm_fill_cnp_template(ctcm, &p);
     inet_aton("22.22.22.8", (in_addr *)&cnpacket.ip.saddr);
     inet_aton("22.22.22.7", (in_addr *)&cnpacket.ip.daddr);

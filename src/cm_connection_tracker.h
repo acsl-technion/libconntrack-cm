@@ -5,6 +5,7 @@
 #pragma once
 
 #include "libconntrack-cm.h"
+#include "parser.h"
 
 #include "ib_cm.h"
 
@@ -50,12 +51,12 @@ struct cm_flow_key : public cm_flow_key_base
 	in_addr_t addr() const { return std::get<0>(*this); }
 	id_t id() const { return std::get<1>(*this); }
 
-	static cm_flow_key from_dest(const ctcm_packet &p, id_t remote_id) {
-		return std::make_tuple(p.l3.ipv4->daddr, remote_id);
+	static cm_flow_key from_dest(const rte_mbuf *p, id_t remote_id) {
+		return std::make_tuple(mbuf_ip(p)->daddr, remote_id);
 	}
 
-	static cm_flow_key from_src(const ctcm_packet &p, id_t remote_id) {
-		return std::make_tuple(p.l3.ipv4->saddr, remote_id);
+	static cm_flow_key from_src(const rte_mbuf *p, id_t remote_id) {
+		return std::make_tuple(mbuf_ip(p)->saddr, remote_id);
 	}
 };
 
@@ -96,9 +97,9 @@ using flow_state_ptr = std::shared_ptr<flow_state>;
 class cm_connection_tracker
 {
 public:
-	cm_connection_tracker();
+	cm_connection_tracker(parser_context& parser);
 
-	void process(const ctcm_packet &p, enum ctcm_direction dir);
+	void process(const rte_mbuf *p, enum ctcm_direction dir);
 
 	qpn_t get_source_qpn(flow_key flow) const
 	{
@@ -110,6 +111,7 @@ public:
 	}
 
 private:
+        parser_context &parser;
 	std::unordered_map<id_t, flow_state_ptr> local_map;
 	std::unordered_map<cm_flow_key, flow_state_ptr, boost::hash<cm_flow_key>> remote_map;
 
@@ -120,26 +122,26 @@ private:
 	void on_established(flow_state_ptr state);
 	void on_disconnected(flow_state_ptr state);
 
-	void req_sent(const ctcm_packet &);
-	void rej_sent(const ctcm_packet &);
-	void rep_sent(const ctcm_packet &);
-	void rtu_sent(const ctcm_packet &);
-	void dreq_sent(const ctcm_packet &);
-	void drep_sent(const ctcm_packet &);
+	void req_sent(const rte_mbuf *);
+	void rej_sent(const rte_mbuf *);
+	void rep_sent(const rte_mbuf *);
+	void rtu_sent(const rte_mbuf *);
+	void dreq_sent(const rte_mbuf *);
+	void drep_sent(const rte_mbuf *);
 
-	void req_received(const ctcm_packet &);
-	void rej_received(const ctcm_packet &);
-	void rep_received(const ctcm_packet &);
-	void rtu_received(const ctcm_packet &);
-	void dreq_received(const ctcm_packet &);
-	void drep_received(const ctcm_packet &);
+	void req_received(const rte_mbuf *);
+	void rej_received(const rte_mbuf *);
+	void rep_received(const rte_mbuf *);
+	void rtu_received(const rte_mbuf *);
+	void dreq_received(const rte_mbuf *);
+	void drep_received(const rte_mbuf *);
 
-	using handler = std::function<void(const ctcm_packet&)>;
+	using handler = std::function<void(const rte_mbuf *)>;
 
 	std::vector<handler> host_handlers;
 	std::vector<handler> net_handlers;
 
-	void process_packet(const std::vector<handler> &handlers, const ctcm_packet& p);
+	void process_packet(const std::vector<handler> &handlers, const rte_mbuf *p);
 
 	qpn_map_t qpn_map;
 };

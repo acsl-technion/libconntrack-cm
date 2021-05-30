@@ -19,7 +19,8 @@ const char *flow_state::state_names[] = {
 #undef _
 };
 
-cm_connection_tracker::cm_connection_tracker()
+cm_connection_tracker::cm_connection_tracker(parser_context& parser) :
+    parser(parser)
 {
 	host_handlers.resize(CM_MAX_ATTR_ID);
 	host_handlers[CM_REQ_ATTR_ID] = std::bind(&cm_connection_tracker::req_sent, this, std::placeholders::_1);
@@ -138,14 +139,14 @@ void flow_state::log(const char *func, const char *msg)
 		local_qpn, remote_qpn);
 }
 
-uint16_t get_attr_id(const ctcm_packet &p)
+uint16_t get_attr_id(parser_context& parser, const rte_mbuf *p)
 {
-	return be16toh(p.mad->attr_id);
+	return be16toh(parser.mbuf_mad(p)->attr_id);
 }
 
-void cm_connection_tracker::req_sent(const ctcm_packet &p)
+void cm_connection_tracker::req_sent(const rte_mbuf *p)
 {
-	auto msg = (cm_req_msg *)p.mad;
+	auto msg = (cm_req_msg *)parser.mbuf_mad(p);
 	id_t local_id = IBA_GET(CM_REQ_LOCAL_COMM_ID, msg);
 	auto state = get_flow(local_id);
 	state->log(BOOST_CURRENT_FUNCTION);
@@ -161,9 +162,9 @@ void cm_connection_tracker::req_sent(const ctcm_packet &p)
 	}
 }
 
-void cm_connection_tracker::req_received(const ctcm_packet &p)
+void cm_connection_tracker::req_received(const rte_mbuf *p)
 {
-	auto msg = (cm_req_msg *)p.mad;
+	auto msg = (cm_req_msg *)parser.mbuf_mad(p);
 	id_t remote_id = IBA_GET(CM_REQ_LOCAL_COMM_ID, msg);
 	auto state = get_flow(0, cm_flow_key::from_src(p, remote_id));
 	state->log(BOOST_CURRENT_FUNCTION);
@@ -181,9 +182,9 @@ void cm_connection_tracker::req_received(const ctcm_packet &p)
 	}
 }
 
-void cm_connection_tracker::rej_sent(const ctcm_packet &p)
+void cm_connection_tracker::rej_sent(const rte_mbuf *p)
 {
-	auto msg = (cm_rej_msg *)p.mad;
+	auto msg = (cm_rej_msg *)parser.mbuf_mad(p);
 	id_t local_id = IBA_GET(CM_REJ_LOCAL_COMM_ID, msg);
 	id_t remote_id = IBA_GET(CM_REJ_REMOTE_COMM_ID, msg);
 	auto remote_flow = cm_flow_key::from_dest(p, remote_id);
@@ -217,9 +218,9 @@ void cm_connection_tracker::rej_sent(const ctcm_packet &p)
 	}
 }
 
-void cm_connection_tracker::rej_received(const ctcm_packet &p)
+void cm_connection_tracker::rej_received(const rte_mbuf *p)
 {
-	auto msg = (cm_rej_msg *)p.mad;
+	auto msg = (cm_rej_msg *)parser.mbuf_mad(p);
 	id_t local_id = IBA_GET(CM_REJ_REMOTE_COMM_ID, msg);
 	id_t remote_id = IBA_GET(CM_REJ_LOCAL_COMM_ID, msg);
 	auto remote_flow = cm_flow_key::from_src(p, remote_id);
@@ -256,9 +257,9 @@ void cm_connection_tracker::rej_received(const ctcm_packet &p)
 	}
 }
 
-void cm_connection_tracker::rep_sent(const ctcm_packet &p)
+void cm_connection_tracker::rep_sent(const rte_mbuf *p)
 {
-	auto msg = (cm_rep_msg *)p.mad;
+	auto msg = (cm_rep_msg *)parser.mbuf_mad(p);
 	id_t local_id = IBA_GET(CM_REP_LOCAL_COMM_ID, msg);
 	id_t remote_id = IBA_GET(CM_REP_REMOTE_COMM_ID, msg);
 	auto remote_flow = cm_flow_key::from_dest(p, remote_id);
@@ -282,9 +283,9 @@ void cm_connection_tracker::rep_sent(const ctcm_packet &p)
 	}
 }
 
-void cm_connection_tracker::rep_received(const ctcm_packet &p)
+void cm_connection_tracker::rep_received(const rte_mbuf *p)
 {
-	auto msg = (cm_rep_msg *)p.mad;
+	auto msg = (cm_rep_msg *)parser.mbuf_mad(p);
 	id_t local_id = IBA_GET(CM_REP_REMOTE_COMM_ID, msg);
 	id_t remote_id = IBA_GET(CM_REP_LOCAL_COMM_ID, msg);
 	auto remote_flow = cm_flow_key::from_src(p, remote_id);
@@ -304,9 +305,9 @@ void cm_connection_tracker::rep_received(const ctcm_packet &p)
 	}
 }
 
-void cm_connection_tracker::rtu_sent(const ctcm_packet &p)
+void cm_connection_tracker::rtu_sent(const rte_mbuf *p)
 {
-	auto msg = (cm_rtu_msg *)p.mad;
+	auto msg = (cm_rtu_msg *)parser.mbuf_mad(p);
 	id_t local_id = IBA_GET(CM_RTU_LOCAL_COMM_ID, msg);
 	auto state = get_flow(local_id);
 	state->log(BOOST_CURRENT_FUNCTION);
@@ -323,9 +324,9 @@ void cm_connection_tracker::rtu_sent(const ctcm_packet &p)
 	}
 }
 
-void cm_connection_tracker::rtu_received(const ctcm_packet &p)
+void cm_connection_tracker::rtu_received(const rte_mbuf *p)
 {
-	auto msg = (cm_rtu_msg *)p.mad;
+	auto msg = (cm_rtu_msg *)parser.mbuf_mad(p);
 	id_t local_id = IBA_GET(CM_RTU_REMOTE_COMM_ID, msg);
 	auto state = get_flow(local_id);
 	state->log(BOOST_CURRENT_FUNCTION);
@@ -342,9 +343,9 @@ void cm_connection_tracker::rtu_received(const ctcm_packet &p)
 	}
 }
 
-void cm_connection_tracker::dreq_sent(const ctcm_packet &p)
+void cm_connection_tracker::dreq_sent(const rte_mbuf *p)
 {
-	auto msg = (cm_dreq_msg *)p.mad;
+	auto msg = (cm_dreq_msg *)parser.mbuf_mad(p);
 	id_t local_id = IBA_GET(CM_DREQ_LOCAL_COMM_ID, msg);
 	auto state = get_flow(local_id);
 	state->log(BOOST_CURRENT_FUNCTION);
@@ -365,9 +366,9 @@ void cm_connection_tracker::dreq_sent(const ctcm_packet &p)
 	}
 }
 
-void cm_connection_tracker::dreq_received(const ctcm_packet &p)
+void cm_connection_tracker::dreq_received(const rte_mbuf *p)
 {
-	auto msg = (cm_dreq_msg *)p.mad;
+	auto msg = (cm_dreq_msg *)parser.mbuf_mad(p);
 	id_t local_id = IBA_GET(CM_DREQ_REMOTE_COMM_ID, msg);
 	auto state = get_flow(local_id);
 	state->log(BOOST_CURRENT_FUNCTION);
@@ -387,9 +388,9 @@ void cm_connection_tracker::dreq_received(const ctcm_packet &p)
 	}
 }
 
-void cm_connection_tracker::drep_sent(const ctcm_packet &p)
+void cm_connection_tracker::drep_sent(const rte_mbuf *p)
 {
-	auto msg = (cm_drep_msg *)p.mad;
+	auto msg = (cm_drep_msg *)parser.mbuf_mad(p);
 	id_t local_id = IBA_GET(CM_DREP_LOCAL_COMM_ID, msg);
 	id_t remote_id = IBA_GET(CM_DREP_REMOTE_COMM_ID, msg);
 	auto remote_flow = cm_flow_key::from_dest(p, remote_id);
@@ -408,9 +409,9 @@ void cm_connection_tracker::drep_sent(const ctcm_packet &p)
 	}
 }
 
-void cm_connection_tracker::drep_received(const ctcm_packet &p)
+void cm_connection_tracker::drep_received(const rte_mbuf *p)
 {
-	auto msg = (cm_drep_msg *)p.mad;
+	auto msg = (cm_drep_msg *)parser.mbuf_mad(p);
 	id_t local_id = IBA_GET(CM_DREP_REMOTE_COMM_ID, msg);
 	id_t remote_id = IBA_GET(CM_DREP_LOCAL_COMM_ID, msg);
 	auto remote_flow = cm_flow_key::from_src(p, remote_id);
@@ -429,9 +430,9 @@ void cm_connection_tracker::drep_received(const ctcm_packet &p)
 	}
 }
 
-void cm_connection_tracker::process_packet(const std::vector<handler> &handlers, const ctcm_packet &p)
+void cm_connection_tracker::process_packet(const std::vector<handler> &handlers, const rte_mbuf *p)
 {
-	uint16_t attr_id = get_attr_id(p);
+	uint16_t attr_id = get_attr_id(parser, p);
 	handler h;
 	if (attr_id < CM_MAX_ATTR_ID) {
 		h = handlers[attr_id];
@@ -441,7 +442,7 @@ void cm_connection_tracker::process_packet(const std::vector<handler> &handlers,
 	} else {
 		log_debug("Unknown attr_id received in %s: 0x%x\n",
 			BOOST_CURRENT_FUNCTION, attr_id);
-		auto hdr = p.mad;
+		auto hdr = parser.mbuf_mad(p);
 		log_debug("RoCE MAD packet: \n"
 			"base_version: 0x%x, "
 			"mgmt_class: 0x%x, "
@@ -451,7 +452,7 @@ void cm_connection_tracker::process_packet(const std::vector<handler> &handlers,
 	}
 }
 
-void cm_connection_tracker::process(const ctcm_packet &p, enum ctcm_direction dir)
+void cm_connection_tracker::process(const rte_mbuf *p, enum ctcm_direction dir)
 {
 	switch (dir) {
 	case CTCM_FROM_HOST:
