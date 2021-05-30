@@ -2,10 +2,11 @@ CTCM_1.0 {
 	global:
 		ctcm_create;
 		ctcm_destroy;
+		ctcm_dynfield_offsets;
 		ctcm_fill_cnp_template;
 		ctcm_generate_cnp;
-		ctcm_parse_packets;
-		ctcm_process_packets;
+		ctcm_parse_packet;
+		ctcm_process_packet;
 		ctcm_query_ipv4;
 
 	local:

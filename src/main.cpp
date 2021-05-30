@@ -7,7 +7,13 @@
 #include "parser.h"
 
 struct ctcm_context {
-    cm_connection_tracker tracker = {};
+    ctcm_context() :
+        parser{},
+        tracker{parser}
+    {}
+
+    parser_context parser;
+    cm_connection_tracker tracker;
 };
 
 ctcm_public
@@ -23,31 +29,38 @@ void ctcm_destroy(struct ctcm_context *ctcm)
 }
 
 ctcm_public
-int ctcm_parse_packets(const struct ctcm_context *ctcm,
-                       struct ctcm_packet *packets,
-                       unsigned int num_packets)
+int ctcm_dynfield_offsets(struct ctcm_context *ctcm,
+                          struct ctcm_dynfield_offsets* offsets)
 {
-    int total = 0;
-    auto end = packets + num_packets;
-    for (auto packet = packets; packet != end; ++packet)
-        if ((parse_packet(*packet)))
-            ++total;
-    
-    return total;
+    if (offsets->size < sizeof(*offsets)) {
+        errno = ENOMEM;
+        return -1;
+    }
+
+    offsets->bth = ctcm->parser.dynfield_bth_offset();
+    offsets->mad = ctcm->parser.dynfield_mad_offset();
+
+    return 0;
 }
 
 ctcm_public
-int ctcm_process_packets(struct ctcm_context *ctcm,
-                         enum ctcm_direction dir,
-                         const struct ctcm_packet *packets,
-                         unsigned int num_packets)
+int ctcm_parse_packet(const struct ctcm_context *ctcm,
+                      struct rte_mbuf *packet)
 {
-    auto end = packets + num_packets;
-    for (auto packet = packets; packet != end; ++packet)
-        if (packet->mad)
-            ctcm->tracker.process(*packet, dir);
+    ctcm->parser.parse_packet(packet);
     
-    return num_packets;
+    return 0;
+}
+
+ctcm_public
+int ctcm_process_packet(struct ctcm_context *ctcm,
+                        enum ctcm_direction dir,
+                        const struct rte_mbuf *packet)
+{
+    if (ctcm->parser.mbuf_mad(packet))
+        ctcm->tracker.process(packet, dir);
+    
+    return 0;
 }
 
 ctcm_public

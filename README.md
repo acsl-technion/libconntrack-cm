@@ -12,16 +12,15 @@ Initialize the connection tracking data structures by calling `ctcm_create`
 
 Pass packets to the library using
 
-    int ctcm_process_packets(
+    int ctcm_process_packet(
         struct ctcm_context *ctcm,
         enum ctcm_direction dir,
-        struct ctcm_packet* packets,
-        unsigned int num_packets);
+        struct rte_mbuf* packet);
 
-Passing an array of pre-parsed packet pointers which point to the packet L3 
+Passing a pre-parsed packet whose metadata points to the packet L3 
 header as well as the MAD header.
 
-If needed, one may use `ctcm_parse_packets` to parse the BTH / MAD headers
+If needed, one may use `ctcm_parse_packet` to parse the BTH / MAD headers
 and filter the CM packets.
 
 You can then query the data structure to find the source QP number of a given
