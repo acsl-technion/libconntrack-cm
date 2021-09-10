@@ -1,5 +1,8 @@
 #pragma once
 
+#include <sys/cdefs.h>
+// for __packed
+
 #include <infiniband/verbs.h>
 
 #include <type_traits>
@@ -16,7 +19,9 @@ typedef int s32;
 
 #define BIT(i) (1ull << (i))
 
-#define __packed	__attribute__((packed))
+#ifndef __packed
+#define __packed       __attribute__((packed))
+#endif
 
 #define be16_to_cpu be16toh
 #define be32_to_cpu be32toh
