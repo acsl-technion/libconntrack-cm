@@ -104,4 +104,6 @@ parser_context::parser_context()
             assert(0);
         }
     }
+
+    dynfield_offsets.size = sizeof(dynfield_offsets);
 }
