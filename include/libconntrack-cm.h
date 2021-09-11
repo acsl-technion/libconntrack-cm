@@ -8,6 +8,7 @@
 extern "C" {
 #endif
 
+#include <assert.h>
 #include <stdint.h>
 #include <netinet/in.h>
 #include <rte_mbuf.h>
@@ -56,10 +57,12 @@ static inline struct rxe_bth *ctcm_mbuf_get_bth(
     struct rte_mbuf *packet)
 {
     uint16_t offset = *ctcm_mbuf_bth_offset(dynfield_offsets, packet);
-    if (offset)
+    if (offset) {
+        assert(offset < rte_pktmbuf_pkt_len(packet));
         return rte_pktmbuf_mtod_offset(packet, rxe_bth *, offset);
-    else
+    } else {
         return nullptr;
+    }
 }
 
 static inline void ctcm_mbuf_set_bth(
@@ -67,8 +70,10 @@ static inline void ctcm_mbuf_set_bth(
     struct rte_mbuf *packet,
     struct rxe_bth *bth)
 {
-    *ctcm_mbuf_bth_offset(dynfield_offsets, packet) = bth ?
+    uint16_t offset = bth ?
         ((char *)bth - rte_pktmbuf_mtod(packet, char *)) : 0;
+    assert(offset < rte_pktmbuf_pkt_len(packet));
+    *ctcm_mbuf_bth_offset(dynfield_offsets, packet) = offset;
 }
 
 static inline struct ib_mad_hdr *ctcm_mbuf_get_mad(
@@ -76,10 +81,12 @@ static inline struct ib_mad_hdr *ctcm_mbuf_get_mad(
     struct rte_mbuf *packet)
 {
     uint16_t offset = *ctcm_mbuf_mad_offset(dynfield_offsets, packet);
-    if (offset)
+    if (offset) {
+        assert(offset < rte_pktmbuf_pkt_len(packet));
         return rte_pktmbuf_mtod_offset(packet, ib_mad_hdr *, offset);
-    else
+    } else {
         return nullptr;
+    }
 }
 
 static inline void ctcm_mbuf_set_mad(
@@ -87,8 +94,10 @@ static inline void ctcm_mbuf_set_mad(
     struct rte_mbuf *packet,
     struct ib_mad_hdr *mad)
 {
-    *ctcm_mbuf_mad_offset(dynfield_offsets, packet) = mad ?
+    uint16_t offset = mad ?
         ((char *)mad - rte_pktmbuf_mtod(packet, char *)) : 0;
+    assert(offset < rte_pktmbuf_pkt_len(packet));
+    *ctcm_mbuf_mad_offset(dynfield_offsets, packet) = offset;
 }
 
 /* Parse a packet. The packet's l2_len/l3_len needs to be valid.
