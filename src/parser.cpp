@@ -50,6 +50,7 @@ ib_mad_hdr *parser_context::parse_packet(rte_mbuf* packet) const
     size_t len = ntohs(udp->len);
     auto bth = extract_bth(udp, len);
     mbuf_bth(packet, bth);
+    mbuf_mad(packet, nullptr);
     if (!bth)
         return nullptr;
     // TODO: validate BTH
