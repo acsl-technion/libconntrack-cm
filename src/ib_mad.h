@@ -510,7 +510,7 @@ int ib_response_mad(const struct ib_mad_hdr *hdr);
  */
 static inline u8 ib_get_rmpp_resptime(struct ib_rmpp_hdr *rmpp_hdr)
 {
-	return rmpp_hdr->rmpp_rtime_flags >> 3;
+	return (u8)(rmpp_hdr->rmpp_rtime_flags >> (u8)(3));
 }
 
 /**
@@ -529,7 +529,7 @@ static inline u8 ib_get_rmpp_flags(struct ib_rmpp_hdr *rmpp_hdr)
  */
 static inline void ib_set_rmpp_resptime(struct ib_rmpp_hdr *rmpp_hdr, u8 rtime)
 {
-	rmpp_hdr->rmpp_rtime_flags = ib_get_rmpp_flags(rmpp_hdr) | (rtime << 3);
+	rmpp_hdr->rmpp_rtime_flags = (u8)(ib_get_rmpp_flags(rmpp_hdr) | (rtime << (u8)(3)));
 }
 
 /**

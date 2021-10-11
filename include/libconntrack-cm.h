@@ -70,10 +70,10 @@ static inline void ctcm_mbuf_set_bth(
     struct rte_mbuf *packet,
     struct rxe_bth *bth)
 {
-    uint16_t offset = bth ?
+    size_t offset = bth ?
         ((char *)bth - rte_pktmbuf_mtod(packet, char *)) : 0;
     assert(offset < rte_pktmbuf_pkt_len(packet));
-    *ctcm_mbuf_bth_offset(dynfield_offsets, packet) = offset;
+    *ctcm_mbuf_bth_offset(dynfield_offsets, packet) = (uint16_t)(offset);
 }
 
 static inline struct ib_mad_hdr *ctcm_mbuf_get_mad(
@@ -94,10 +94,10 @@ static inline void ctcm_mbuf_set_mad(
     struct rte_mbuf *packet,
     struct ib_mad_hdr *mad)
 {
-    uint16_t offset = mad ?
+    size_t offset = mad ?
         ((char *)mad - rte_pktmbuf_mtod(packet, char *)) : 0;
     assert(offset < rte_pktmbuf_pkt_len(packet));
-    *ctcm_mbuf_mad_offset(dynfield_offsets, packet) = offset;
+    *ctcm_mbuf_mad_offset(dynfield_offsets, packet) = (uint16_t)(offset);
 }
 
 /* Parse a packet. The packet's l2_len/l3_len needs to be valid.

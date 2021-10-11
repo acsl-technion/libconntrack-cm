@@ -56,7 +56,7 @@ const char expected_cnp[] =
 void hexdump(const std::string& strbuf)
 {
     for (size_t i = 0; i < strbuf.size(); i += 16) {
-        int cur_end = std::min(i + 16, strbuf.size());
+        size_t cur_end = std::min(i + 16, strbuf.size());
         char line[16 * 2 + 1];
         auto it = std::begin(strbuf);
         boost::algorithm::hex(it + i, it + cur_end, line);

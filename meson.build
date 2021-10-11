@@ -21,6 +21,10 @@ boost = dependency('boost')
 
 
 add_project_arguments('-fvisibility=hidden', language: 'cpp')
+add_project_arguments(cc.get_supported_arguments([
+	'-Wshadow=local',
+	'-Wconversion',
+]), language: 'cpp')
 
 linker_script = 'src/libconntrack-cm.map'
 
