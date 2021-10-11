@@ -115,21 +115,21 @@ static __always_inline __##type type##_encode_bits(base v, base field)	\
 {									\
 	if (__builtin_constant_p(v) && (v & ~field_mask(field)))	\
 		__field_overflow();					\
-	return to((v & field_mask(field)) * field_multiplier(field));	\
+	return to((base)((v & field_mask(field)) * field_multiplier(field)));	\
 }									\
 static __always_inline __##type type##_replace_bits(__##type old,	\
 					base val, base field)		\
 {									\
-	return (old & ~to(field)) | type##_encode_bits(val, field);	\
+	return (__##type)(old & ~to(field)) | type##_encode_bits(val, field);	\
 }									\
 static __always_inline void type##p_replace_bits(__##type *p,		\
 					base val, base field)		\
 {									\
-	*p = (*p & ~to(field)) | type##_encode_bits(val, field);	\
+	*p = (__##type)(*p & ~to(field)) | type##_encode_bits(val, field);	\
 }									\
 static __always_inline base type##_get_bits(__##type v, base field)	\
 {									\
-	return (from(v) & field)/field_multiplier(field);		\
+	return (base)((from(v) & field)/field_multiplier(field));		\
 }
 #define __MAKE_OP(size)							\
 	____MAKE_OP(le##size,u##size,cpu_to_le##size,le##size##_to_cpu)	\

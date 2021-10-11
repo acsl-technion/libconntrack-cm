@@ -91,10 +91,10 @@ struct rxe_bth {
 #define BTH_TVER		(0)
 #define BTH_DEF_PKEY		(0xffff)
 
-#define BTH_SE_MASK		(0x80)
-#define BTH_MIG_MASK		(0x40)
-#define BTH_PAD_MASK		(0x30)
-#define BTH_TVER_MASK		(0x0f)
+#define BTH_SE_MASK		((u8)0x80)
+#define BTH_MIG_MASK		((u8)0x40)
+#define BTH_PAD_MASK		((u8)0x30)
+#define BTH_TVER_MASK		((u8)0x0f)
 #define BTH_FECN_MASK		(0x80000000)
 #define BTH_BECN_MASK		(0x40000000)
 #define BTH_RESV6A_MASK		(0x3f000000)
@@ -131,7 +131,7 @@ static inline void __bth_set_se(void *arg, int se)
 	if (se)
 		bth->flags |= BTH_SE_MASK;
 	else
-		bth->flags &= ~BTH_SE_MASK;
+		bth->flags = (u8)(bth->flags & ~BTH_SE_MASK);
 }
 
 static inline u8 __bth_mig(void *arg)
@@ -148,7 +148,7 @@ static inline void __bth_set_mig(void *arg, u8 mig)
 	if (mig)
 		bth->flags |= BTH_MIG_MASK;
 	else
-		bth->flags &= ~BTH_MIG_MASK;
+		bth->flags = (u8)(bth->flags & ~BTH_MIG_MASK);
 }
 
 static inline u8 __bth_pad(void *arg)
@@ -162,8 +162,8 @@ static inline void __bth_set_pad(void *arg, u8 pad)
 {
 	struct rxe_bth *bth = (rxe_bth *)arg;
 
-	bth->flags = (BTH_PAD_MASK & (pad << 4)) |
-			(~BTH_PAD_MASK & bth->flags);
+	bth->flags = (u8)((BTH_PAD_MASK & (pad << (u8)(4))) |
+			(~BTH_PAD_MASK & bth->flags));
 }
 
 static inline u8 __bth_tver(void *arg)
@@ -177,8 +177,8 @@ static inline void __bth_set_tver(void *arg, u8 tver)
 {
 	struct rxe_bth *bth = (rxe_bth *)arg;
 
-	bth->flags = (BTH_TVER_MASK & tver) |
-			(~BTH_TVER_MASK & bth->flags);
+	bth->flags = (u8)((BTH_TVER_MASK & tver) |
+			(~BTH_TVER_MASK & bth->flags));
 }
 
 static inline u16 __bth_pkey(void *arg)
@@ -453,7 +453,7 @@ struct rxe_rdeth {
 
 #define RDETH_EEN_MASK		(0x00ffffff)
 
-static inline u8 __rdeth_een(void *arg)
+static inline u32 __rdeth_een(void *arg)
 {
 	struct rxe_rdeth *rdeth = (struct rxe_rdeth *)arg;
 
@@ -467,7 +467,7 @@ static inline void __rdeth_set_een(void *arg, u32 een)
 	rdeth->een = htonl(RDETH_EEN_MASK & een);
 }
 
-static inline u8 rdeth_een(struct rxe_pkt_info *pkt)
+static inline u32 rdeth_een(struct rxe_pkt_info *pkt)
 {
 	return __rdeth_een(pkt->hdr + pkt->offset
 		+ rxe_opcode[pkt->opcode].offset[RXE_RDETH]);
@@ -771,7 +771,7 @@ static inline u8 __aeth_syn(void *arg)
 {
 	struct rxe_aeth *aeth = (struct rxe_aeth *)arg;
 
-	return (AETH_SYN_MASK & ntohl(aeth->smsn)) >> 24;
+	return (u8)((AETH_SYN_MASK & ntohl(aeth->smsn)) >> 24);
 }
 
 static inline void __aeth_set_syn(void *arg, u8 syn)

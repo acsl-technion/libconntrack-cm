@@ -15,9 +15,9 @@ static inline u32 _iba_get8(const u8 *ptr)
 	return *ptr;
 }
 
-static inline void _iba_set8(u8 *ptr, u32 mask, u32 prep_value)
+static inline void _iba_set8(u8 *ptr, u8 mask, u8 prep_value)
 {
-	*ptr = (*ptr & ~mask) | prep_value;
+	*ptr = (u8)((*ptr & ~mask) | prep_value);
 }
 
 static inline u16 _iba_get16(const __be16 *ptr)
@@ -27,7 +27,7 @@ static inline u16 _iba_get16(const __be16 *ptr)
 
 static inline void _iba_set16(__be16 *ptr, u16 mask, u16 prep_value)
 {
-	*ptr = cpu_to_be16((be16_to_cpu(*ptr) & ~mask) | prep_value);
+	*ptr = cpu_to_be16((u16)((be16_to_cpu(*ptr) & ~mask) | prep_value));
 }
 
 static inline u32 _iba_get32(const __be32 *ptr)
